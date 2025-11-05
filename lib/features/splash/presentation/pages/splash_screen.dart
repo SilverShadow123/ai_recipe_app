@@ -1,10 +1,9 @@
-import 'package:ai_recipe_app/presentation/widgets/loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../logic/blocs/splash/splash_bloc.dart';
+import '../bloc/splash_bloc.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -63,7 +62,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
 
 
-              const LoadingIndicator(message: 'Loading...'),
+              const CircularProgressIndicator(),
             ],
           ),
         ),

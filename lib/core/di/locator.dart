@@ -1,5 +1,6 @@
-import 'package:ai_recipe_app/logic/blocs/splash/splash_bloc.dart';
 import 'package:get_it/get_it.dart';
+
+import '../../features/splash/presentation/bloc/splash_bloc.dart';
 
 final GetIt locator = GetIt.instance;
 
