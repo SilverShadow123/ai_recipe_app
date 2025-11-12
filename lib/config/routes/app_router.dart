@@ -1,7 +1,5 @@
-import 'package:ai_recipe_app/features/recipe/presentation/bloc/splash/splash_bloc.dart';
 import 'package:ai_recipe_app/features/recipe/presentation/pages/login_page.dart';
 import 'package:ai_recipe_app/features/recipe/presentation/pages/splash_page.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
@@ -15,10 +13,7 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/',
       name: 'splash',
-      builder: (constext, state) => BlocProvider(
-        create: (_) => sl<SplashBloc>()..add(CheckLoginStatusEvent()),
-        child: const SplashPage(),
-      ),
+      builder: (constext, state) => const SplashPage(),
     ),
     GoRoute(
       path: '/login',

@@ -1,1 +1,51 @@
-// TODO: Implement Auth state
+part of 'auth_bloc.dart';
+
+abstract class AuthState extends Equatable{
+
+  const AuthState();
+
+  @override
+  List<Object?> get props => [];
+
+}
+
+class AuthInitial extends AuthState{}
+
+class AuthLoading extends AuthState{}
+
+class AuthAuthenticated extends AuthState{
+  final UserEntity user;
+  const AuthAuthenticated(this.user);
+
+  @override
+  List<Object?> get props => [user];
+
+  AuthAuthenticated copyWith({UserEntity? user}){
+    return AuthAuthenticated(user ?? this.user);
+  }
+}
+
+class AuthUnauthenticated extends AuthState{
+
+}
+
+class AuthResetEmailSent extends AuthState{
+
+}
+
+class AuthError extends AuthState{
+  final String message;
+  const AuthError(this.message);
+
+
+
+  @override
+  List<Object?> get props => [message];
+
+  AuthError copyWith({String? message}){
+    return AuthError(message ?? this.message);
+  }
+
+}
+
+
