@@ -1,13 +1,10 @@
-
+import 'package:ai_recipe_app/features/recipe/presentation/widgets/app_logo.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 import 'custom_loading_indicator.dart';
 
 class SplashUI extends StatelessWidget {
-  const SplashUI({
-    super.key,
-  });
+  const SplashUI({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +12,7 @@ class SplashUI extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 16,
       children: [
-        SvgPicture.asset('assets/images/app_icon.svg'),
+        AppLogo(),
         const Text(
           'AI Recipe Assistant',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
