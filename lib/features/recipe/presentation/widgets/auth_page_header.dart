@@ -5,13 +5,13 @@ class AuthPageHeader extends StatelessWidget {
     super.key,
     this.logo,
     required this.title,
-    required this.headline,
+    this.headline,
     required this.subtitle,
   });
 
   final Widget? logo;
   final String title;
-  final String headline;
+  final String? headline;
   final String subtitle;
 
   @override
@@ -30,14 +30,16 @@ class AuthPageHeader extends StatelessWidget {
             color: Colors.black87,
           ),
         ),
-        const SizedBox(height: 12),
-        Text(
-          headline,
-          style: textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: Colors.black,
+        if (headline != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            headline!,
+            style: textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 8),
         Text(
           subtitle,

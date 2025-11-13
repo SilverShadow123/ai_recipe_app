@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/recipe/presentation/pages/home_page.dart';
+import '../../features/recipe/presentation/pages/register_page.dart';
 
 final sl = GetIt.instance;
 
@@ -25,5 +26,10 @@ final appRouter = GoRouter(
       name: 'home',
       builder: (context, state) => const HomePage(),
     ),
+    GoRoute(
+      path: '/register',
+      name: 'register',
+      builder: (context, state) => const RegisterPage(),
+    )
   ],
 );

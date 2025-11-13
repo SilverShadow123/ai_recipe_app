@@ -17,7 +17,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -35,40 +34,22 @@ class _LoginPageState extends State<LoginPage> {
                   subtitle: "Welcome back! Let's get cooking",
                 ),
                 const SizedBox(height: 32),
-                buildLogin(textTheme),
+                AuthLoginForm(formKey: _formKey),
                 const SizedBox(height: 32),
                 AppCapsuleButton(
                   label: 'Cook more with less',
                   icon: Icons.restaurant_menu_outlined,
                   backgroundColor: AppColors.accentGreen,
                   foregroundColor: Colors.white,
-                  onPressed: () {  },
+                  onPressed: () {
+                    // TODO: CTA action
+                  },
                 ),
               ],
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Container buildLogin(TextTheme textTheme) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.withAlpha(50)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1A000000),
-            blurRadius: 18,
-            offset: Offset(0, 12),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-      child: AuthLoginForm(formKey: _formKey, textTheme: textTheme),
     );
   }
 }
