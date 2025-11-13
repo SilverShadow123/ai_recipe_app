@@ -30,6 +30,10 @@ class SignUpEvent extends AuthEvent{
   List<Object?> get props => [email, password, name];
 }
 
+class SignInWithGoogleEvent extends AuthEvent {
+  const SignInWithGoogleEvent();
+}
+
 class SignOutEvent extends AuthEvent{
 
 }

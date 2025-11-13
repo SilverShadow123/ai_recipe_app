@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../bloc/auth/auth_bloc.dart';
 import '../../../../core/widgets/app_capsule_button.dart';
 
 class AuthAdditionalProviders extends StatelessWidget {
@@ -18,7 +20,7 @@ class AuthAdditionalProviders extends StatelessWidget {
             borderColor: Colors.grey.withAlpha(51),
             backgroundColor: Colors.white,
             onPressed: () {
-              // TODO: implement Google sign-in
+              context.read<AuthBloc>().add(const SignInWithGoogleEvent());
             },
           ),
         ),

@@ -36,6 +36,15 @@ class AuthRepositoryImpl implements AuthRepo {
   }
 
   @override
+  Future<UserEntity?> signInWithGoogle() async {
+    final user = await datasource.signInWithGoogle();
+    if (user != null) {
+      return UserModel.fromFirebaseUser(user);
+    }
+    return null;
+  }
+
+  @override
   Future<void> signOut() async {
     await datasource.signOut();
   }
