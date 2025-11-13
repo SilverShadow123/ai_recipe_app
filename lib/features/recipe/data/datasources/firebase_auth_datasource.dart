@@ -12,9 +12,12 @@ class FirebaseAuthDatasource{
   Future<User?> signIn(String email, String password) async{
     final result = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
     return result.user;
-  }  Future<User?> signUp(String email, String password) async{
-    final result = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
-    return result.user;
+  }  Future<User?> signUp(String email, String password, String name) async{
+    final result = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password,);
+    await result.user?.updateDisplayName(name);
+    await result.user?.reload();
+    final updateUser = _firebaseAuth.currentUser;
+    return updateUser;
   }
 
   Future<void> signOut() async{

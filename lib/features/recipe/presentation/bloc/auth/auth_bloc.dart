@@ -71,7 +71,7 @@ on<ResetPasswordEvent>(_resetPassword);
     Emitter<AuthState> emit,
   ) async {
     try{
-      final user = await signUpUsecase(event.email, event.password);
+      final user = await signUpUsecase(event.email, event.password, event.name);
       if(user != null){
         emit(AuthAuthenticated(user));
       }else{

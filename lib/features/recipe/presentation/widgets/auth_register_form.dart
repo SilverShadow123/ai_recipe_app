@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -121,7 +122,7 @@ class _AuthRegisterFormState extends State<AuthRegisterForm> {
             BlocListener<AuthBloc, AuthState>(
               listener: (context, state) {
                 if (state is AuthAuthenticated) {
-                  context.goNamed('login');
+                  context.goNamed('login');();
                 } else if (state is AuthError) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(state.message)),
@@ -136,6 +137,7 @@ class _AuthRegisterFormState extends State<AuthRegisterForm> {
                           SignUpEvent(
                             _emailController.text.trim(),
                             _passwordController.text,
+                            _nameController.text.trim(),
                           ),
                         );
                   }
@@ -149,13 +151,17 @@ class _AuthRegisterFormState extends State<AuthRegisterForm> {
                   style: textTheme.bodyMedium?.copyWith(
                     color: Colors.grey.shade600,
                   ),
-                  children: const [
+                  children: [
                     TextSpan(
                       text: 'Login',
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w600,
                       ),
+                      recognizer:  TapGestureRecognizer()
+                        ..onTap = () {
+                          GoRouter.of(context).pushNamed('login');
+                        },
                     ),
                   ],
                 ),

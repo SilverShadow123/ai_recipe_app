@@ -27,8 +27,8 @@ class AuthRepositoryImpl implements AuthRepo {
   }
 
   @override
-  Future<UserEntity?> signUp(String email, String password) async {
-    final user = await datasource.signUp(email, password);
+  Future<UserEntity?> signUp(String email, String password, String name) async {
+    final user = await datasource.signUp(email, password, name);
     if (user != null) {
       return UserModel.fromFirebaseUser(user);
     }

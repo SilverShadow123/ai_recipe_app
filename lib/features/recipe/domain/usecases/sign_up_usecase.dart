@@ -6,7 +6,7 @@ class SignUpUsecase{
 
   SignUpUsecase(this.repo);
 
-  Future<UserEntity?> call(String email, String password) async{
-    return await repo.signUp(email, password);
+  Future<UserEntity?> call(String email, String password, String name) async{
+    return await repo.signUp(email, password, name);
   }
 }

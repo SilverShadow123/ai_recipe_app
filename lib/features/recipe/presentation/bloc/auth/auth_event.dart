@@ -22,11 +22,12 @@ class SignInEvent extends AuthEvent{
 class SignUpEvent extends AuthEvent{
   final String email;
   final String password;
+  final String name;
 
-  const SignUpEvent(this.email, this.password);
+  const SignUpEvent(this.email, this.password, this.name);
 
   @override
-  List<Object?> get props => [email, password];
+  List<Object?> get props => [email, password, name];
 }
 
 class SignOutEvent extends AuthEvent{
