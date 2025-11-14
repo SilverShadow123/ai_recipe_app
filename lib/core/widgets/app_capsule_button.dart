@@ -11,6 +11,7 @@ class AppCapsuleButton extends StatelessWidget {
     this.expanded = true,
     this.outlined = false,
     this.borderColor,
+    this.borderRadius,
   });
 
   final String label;
@@ -21,10 +22,11 @@ class AppCapsuleButton extends StatelessWidget {
   final bool expanded;
   final bool outlined;
   final Color? borderColor;
+  final BorderRadius? borderRadius;
 
   @override
   Widget build(BuildContext context) {
-    final button = outlined ? _outlinedButton(context) : _filledButton(context);
+    final button = outlined ? _buildOutlinedButton() : _buildElevatedButton();
 
     if (expanded) {
       return SizedBox(width: double.infinity, child: button);
@@ -32,64 +34,55 @@ class AppCapsuleButton extends StatelessWidget {
     return button;
   }
 
-  Widget _filledButton(BuildContext context) {
-    final themeStyle = Theme.of(context).elevatedButtonTheme.style;
-    final baseStyle = themeStyle ?? ElevatedButton.styleFrom();
-
-    final style = baseStyle.copyWith(
-      backgroundColor: backgroundColor != null
-          ? WidgetStatePropertyAll<Color>(backgroundColor!)
-          : null,
-      foregroundColor: foregroundColor != null
-          ? WidgetStatePropertyAll<Color>(foregroundColor!)
-          : null,
+  Widget _buildElevatedButton() {
+    final style = ElevatedButton.styleFrom(
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: borderRadius ?? BorderRadius.circular(999),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      textStyle: const TextStyle(fontWeight: FontWeight.w600,fontSize: 16),
+      side: borderColor != null ? BorderSide(color: borderColor!) : null,
     );
 
-    if (icon != null) {
-      return ElevatedButton.icon(
-        onPressed: onPressed,
-        style: style,
-        icon: Icon(icon),
-        label: Text(label),
-      );
-    }
-
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: style,
-      child: Text(label),
-    );
+    return icon != null
+        ? ElevatedButton.icon(
+            onPressed: onPressed,
+            style: style,
+            icon: Icon(icon),
+            label: Text(label),
+          )
+        : ElevatedButton(
+            onPressed: onPressed,
+            style: style,
+            child: Text(label),
+          );
   }
 
-  Widget _outlinedButton(BuildContext context) {
-    final themeStyle = Theme.of(context).outlinedButtonTheme.style;
-    final baseStyle = themeStyle ?? OutlinedButton.styleFrom();
-
-    final style = baseStyle.copyWith(
-      backgroundColor: backgroundColor != null
-          ? WidgetStatePropertyAll<Color>(backgroundColor!)
-          : null,
-      foregroundColor: foregroundColor != null
-          ? WidgetStatePropertyAll<Color>(foregroundColor!)
-          : null,
-      side: WidgetStatePropertyAll<BorderSide>(
-        BorderSide(color: borderColor ?? Colors.grey.withAlpha(50)),
+  Widget _buildOutlinedButton() {
+    final style = OutlinedButton.styleFrom(
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
+      side: BorderSide(color: borderColor ?? Colors.grey.withAlpha(50)),
+      shape: RoundedRectangleBorder(
+        borderRadius: borderRadius ?? BorderRadius.circular(999),
       ),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      textStyle: const TextStyle(fontWeight: FontWeight.w600),
     );
 
-    if (icon != null) {
-      return OutlinedButton.icon(
-        onPressed: onPressed,
-        style: style,
-        icon: Icon(icon),
-        label: Text(label),
-      );
-    }
-
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: style,
-      child: Text(label),
-    );
+    return icon != null
+        ? OutlinedButton.icon(
+            onPressed: onPressed,
+            style: style,
+            icon: Icon(icon),
+            label: Text(label),
+          )
+        : OutlinedButton(
+            onPressed: onPressed,
+            style: style,
+            child: Text(label),
+          );
   }
 }

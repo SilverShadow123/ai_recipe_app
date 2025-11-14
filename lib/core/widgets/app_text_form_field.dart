@@ -14,6 +14,7 @@ class AppTextFormField extends StatelessWidget {
     this.onChanged,
     this.textInputAction,
     this.autofillHints,
+    this.border,
   });
 
   final String label;
@@ -27,6 +28,7 @@ class AppTextFormField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
+  final InputBorder? border;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +43,7 @@ class AppTextFormField extends StatelessWidget {
         Text(label, style: labelStyle),
         const SizedBox(height: 8),
         TextFormField(
+
           controller: controller,
           keyboardType: keyboardType,
           obscureText: obscureText,
@@ -50,6 +53,12 @@ class AppTextFormField extends StatelessWidget {
                 ? Icon(prefixIcon, color: Colors.grey.shade500)
                 : null,
             suffixIcon: suffix,
+            border: border,
+            enabledBorder: border,
+            focusedBorder: border,
+            disabledBorder: border,
+            errorBorder: border,
+            focusedErrorBorder: border,
           ),
           validator: validator,
           onChanged: onChanged,
