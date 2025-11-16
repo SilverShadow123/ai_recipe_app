@@ -3,6 +3,7 @@ import 'package:ai_recipe_app/features/recipe/data/datasources/recipe_ai_datasou
 import 'package:ai_recipe_app/features/recipe/data/repositories/auth_repository_impl.dart';
 import 'package:ai_recipe_app/features/recipe/data/repositories/recipe_repository_impl.dart';
 import 'package:ai_recipe_app/features/recipe/domain/repositories/auth_repository.dart';
+import 'package:ai_recipe_app/features/recipe/domain/usecases/extract_ingredients_from_image_usecase.dart';
 import 'package:ai_recipe_app/features/recipe/domain/usecases/generate_recipe_usecase.dart';
 import 'package:ai_recipe_app/features/recipe/domain/usecases/get_current_user_usecase.dart';
 import 'package:ai_recipe_app/features/recipe/domain/usecases/reset_password_usecase.dart';
@@ -17,6 +18,7 @@ import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'features/recipe/domain/repositories/recipe_repository.dart';
+import 'features/recipe/domain/usecases/generate_recipe_image_usecase.dart';
 
 
 final sl = GetIt.instance;
@@ -42,7 +44,9 @@ Future<void> init() async {
   sl.registerLazySingleton(()=>RecipeAIDatasource());
   sl.registerLazySingleton<RecipeRepository>(() => RecipeRepositoryImpl(sl()));
   sl.registerLazySingleton(()=>GenereateRecipeUseCase(sl()));
-  sl.registerFactory(() => RecipeBloc(sl()));
+  sl.registerLazySingleton(()=>ExtractIngredientsFromImageUsecase(sl()));
+  sl.registerLazySingleton(()=>GenerateRecipeImageUsecase(sl()));
+  sl.registerLazySingleton(() => RecipeBloc(sl(), sl(), sl()));
 
   sl.registerFactory(
     () => AuthBloc(

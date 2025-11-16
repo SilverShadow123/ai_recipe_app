@@ -14,7 +14,7 @@ class AppTextFormField extends StatelessWidget {
     this.onChanged,
     this.textInputAction,
     this.autofillHints,
-    this.border,
+    this.border, this.maxLines,
   });
 
   final String label;
@@ -29,6 +29,7 @@ class AppTextFormField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
   final InputBorder? border;
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +46,7 @@ class AppTextFormField extends StatelessWidget {
         TextFormField(
 
           controller: controller,
+          maxLines: maxLines,
           keyboardType: keyboardType,
           obscureText: obscureText,
           decoration: InputDecoration(

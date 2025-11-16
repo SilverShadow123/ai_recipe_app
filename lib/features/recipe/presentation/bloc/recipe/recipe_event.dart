@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 
 abstract class RecipeEvent extends Equatable {
@@ -14,3 +16,14 @@ class GenerateRecipeEvent extends RecipeEvent {
   @override
   List<Object?> get props => [ingredients, notes];
 }
+
+class ExtractIngredientsFromImageEvent extends RecipeEvent {
+  final Uint8List imageBytes;
+
+  ExtractIngredientsFromImageEvent(this.imageBytes);
+
+  @override
+  List<Object?> get props => [imageBytes];
+}
+
+
