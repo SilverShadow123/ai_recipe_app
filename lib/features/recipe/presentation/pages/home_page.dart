@@ -62,11 +62,11 @@ class _HomePageState extends State<HomePage> {
           BlocListener<AuthBloc, AuthState>(
             listener: (context, state) {
               if (state is AuthUnauthenticated)
-                context.goNamed('login');
-              else if (state is AuthError)
+                {context.goNamed('login');}
+              else if (state is AuthError){
                 ScaffoldMessenger.of(
                   context,
-                ).showSnackBar(SnackBar(content: Text(state.message)));
+                ).showSnackBar(SnackBar(content: Text(state.message)));}
             },
             child: IconButton(
               icon: const Icon(Icons.logout, color: Colors.black87),
