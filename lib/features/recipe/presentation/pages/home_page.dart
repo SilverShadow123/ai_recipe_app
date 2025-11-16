@@ -7,42 +7,18 @@ import '../bloc/auth/auth_bloc.dart';
 import '../bloc/recipe/recipe_bloc.dart';
 import '../bloc/recipe/recipe_event.dart';
 import '../bloc/recipe/recipe_state.dart';
-import '../widgets/empty_state.dart';
-import '../widgets/home_page_header.dart';
-import '../widgets/ingredients_input_section.dart';
-import '../widgets/recipe_result_section.dart';
+import '../widgets/home_page_content_state.dart';
 
-class HomePage extends StatefulWidget {
+
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  late final TextEditingController ingredientsController;
-  late final TextEditingController notesController;
-  final ImagePicker _imagePicker = ImagePicker();
-
-  @override
-  void initState() {
-    super.initState();
-    ingredientsController = TextEditingController();
-    notesController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    ingredientsController.dispose();
-    notesController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    final image = await _imagePicker.pickImage(source: ImageSource.camera);
+  Future<void> _pickImage(BuildContext context) async {
+    final imagePicker = ImagePicker();
+    final image = await imagePicker.pickImage(source: ImageSource.camera);
     if (image == null) return;
     final bytes = await image.readAsBytes();
-    if (!mounted) return;
+    if (!context.mounted) return;
     context.read<RecipeBloc>().add(ExtractIngredientsFromImageEvent(bytes));
   }
 
@@ -61,12 +37,13 @@ class _HomePageState extends State<HomePage> {
         actions: [
           BlocListener<AuthBloc, AuthState>(
             listener: (context, state) {
-              if (state is AuthUnauthenticated)
-                {context.goNamed('login');}
-              else if (state is AuthError){
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(state.message)));}
+              if (state is AuthUnauthenticated) {
+                context.goNamed('login');
+              } else if (state is AuthError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(state.message)),
+                );
+              }
             },
             child: IconButton(
               icon: const Icon(Icons.logout, color: Colors.black87),
@@ -84,34 +61,10 @@ class _HomePageState extends State<HomePage> {
             ),
         child: BlocBuilder<RecipeBloc, RecipeState>(
           builder: (context, state) {
-            if (state.extractedIngredients.isNotEmpty &&
-                ingredientsController.text != state.extractedIngredients) {
-              WidgetsBinding.instance.addPostFrameCallback(
-                (_) => ingredientsController.text = state.extractedIngredients,
-              );
-            }
-            return SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    HomePageHeader(theme: theme),
-                    const SizedBox(height: 24),
-                    IngredientsInputSection(
-                      ingredientsController: ingredientsController,
-                      notesController: notesController,
-                      state: state,
-                      onPickImage: _pickImage,
-                      theme: theme,
-                    ),
-                    if (state.recipeText.isNotEmpty)
-                      RecipeResultSection(state: state, theme: theme),
-                    if (state.recipeText.isEmpty && !state.isGenerating)
-                      EmptyStateSection(theme: theme),
-                  ],
-                ),
-              ),
+            return HomePageContent(
+              state: state,
+              theme: theme,
+              onPickImage: () => _pickImage(context),
             );
           },
         ),
@@ -119,3 +72,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
