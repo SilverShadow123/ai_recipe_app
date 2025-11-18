@@ -14,6 +14,7 @@ import 'package:ai_recipe_app/features/recipe/domain/usecases/sign_up_usecase.da
 import 'package:ai_recipe_app/features/recipe/presentation/bloc/auth/auth_bloc.dart';
 import 'package:ai_recipe_app/features/recipe/presentation/bloc/bottom_navigation/bottom_nav_cubit.dart';
 import 'package:ai_recipe_app/features/recipe/presentation/bloc/recipe/recipe_bloc.dart';
+import 'package:ai_recipe_app/features/recipe/presentation/bloc/theme_settings/theme_settings_cubit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -48,7 +49,8 @@ Future<void> init() async {
   sl.registerLazySingleton(()=>ExtractIngredientsFromImageUsecase(sl()));
   sl.registerLazySingleton(()=>GenerateRecipeImageUsecase(sl()));
   sl.registerLazySingleton(() => RecipeBloc(sl(), sl(), sl()));
-  sl.registerLazySingleton(()=>BottomNavCubit());
+  sl.registerLazySingleton(() => BottomNavCubit());
+  sl.registerLazySingleton(() => ThemeSettingsCubit());
 
   sl.registerFactory(
     () => AuthBloc(

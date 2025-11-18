@@ -14,8 +14,11 @@ class AppTextFormField extends StatelessWidget {
     this.onChanged,
     this.textInputAction,
     this.autofillHints,
-    this.border, this.maxLines,
-  });
+    this.border,
+    int? maxLines,
+  }) : maxLines = obscureText ? 1 : maxLines,
+       assert(!obscureText || maxLines == null || maxLines == 1, 
+              'Obscured fields cannot be multiline');
 
   final String label;
   final String hintText;

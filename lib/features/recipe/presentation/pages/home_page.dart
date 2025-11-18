@@ -62,9 +62,11 @@ class HomePage extends StatelessWidget {
         child: BlocBuilder<RecipeBloc, RecipeState>(
           builder: (context, state) {
             return HomePageContent(
+
               state: state,
               theme: theme,
               onPickImage: () => _pickImage(context),
+
             );
           },
         ),

@@ -11,7 +11,7 @@ class HomePageContent extends StatefulWidget {
   final ThemeData theme;
   final VoidCallback onPickImage;
 
-  const HomePageContent({
+  const HomePageContent({super.key,
     required this.state,
     required this.theme,
     required this.onPickImage,
