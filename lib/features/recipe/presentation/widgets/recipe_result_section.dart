@@ -1,9 +1,10 @@
+import 'package:ai_recipe_app/features/recipe/presentation/bloc/recipe/recipe_bloc.dart';
+import 'package:ai_recipe_app/features/recipe/presentation/bloc/recipe/recipe_event.dart';
+import 'package:ai_recipe_app/features/recipe/presentation/bloc/recipe/recipe_state.dart';
 import 'package:ai_recipe_app/features/recipe/presentation/widgets/custom_loading_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-
-import '../bloc/recipe/recipe_state.dart';
-
 
 class RecipeResultSection extends StatelessWidget {
   final RecipeState state;
@@ -39,6 +40,8 @@ class RecipeResultSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
+
+        // --- Recipe Image ---
         if (state.imageBytes != null)
           Card(
             elevation: 2,
@@ -74,6 +77,8 @@ class RecipeResultSection extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 16),
+
+        // --- Recipe Text ---
         Card(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -115,6 +120,45 @@ class RecipeResultSection extends StatelessWidget {
               ),
             ),
           ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // --- Save Recipe Button ---
+        BlocConsumer<RecipeBloc, RecipeState>(
+          listener: (context, state) {
+            if (state.saveSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Recipe saved successfully!')));
+            }
+            if (state.error.isNotEmpty) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(state.error)));
+            }
+          },
+          builder: (context, blocState) {
+            return ElevatedButton.icon(
+              onPressed: (blocState.recipeText.isEmpty || blocState.isSaving)
+                  ? null
+                  : () {
+                // Fire the SaveRecipeEvent
+                context.read<RecipeBloc>().add(
+                  SaveRecipeEvent(
+                      blocState.extractedIngredients), // pass ingredients
+                );
+              },
+              icon: blocState.isSaving
+                  ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+                  : const Icon(Icons.bookmark),
+              label: Text(
+                blocState.isSaving ? 'Saving...' : 'Save Recipe',
+              ),
+            );
+          },
         ),
       ],
     );

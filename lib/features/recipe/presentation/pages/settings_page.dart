@@ -97,11 +97,20 @@ class _SettingsPageState extends State<SettingsPage> {
     _scrollToBottom();
 
     try {
-      await _appAgent.submitFeedback(
+      final reply = await _appAgent.submitFeedback(
         context,
         screenshot ?? Uint8List(0),
         message.isNotEmpty ? message : 'Screenshot feedback',
       );
+
+      if (mounted && reply != null && reply.trim().isNotEmpty) {
+        setState(() {
+          _messages.add(ChatMessage(
+            message: reply,
+            isUser: false,
+          ));
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {

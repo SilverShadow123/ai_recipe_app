@@ -49,7 +49,7 @@ class AppAgent{
   late Uint8List screenshot;
   late String feedbackText;
 
-  initialize(){
+  void initialize(){
     chat = gemini.startChat();
   }
   Future<bool> askConfirmation(BuildContext context, String question) async {
@@ -85,7 +85,8 @@ class AppAgent{
       BuildContext context,
       FunctionCall functionCall,
       ) async {
-    var question = functionCall.args['question']! as String;
+    final question = functionCall.args['question'] as String?;
+    if (question == null) return null;
 
     if (context.mounted) {
       final functionResult = await askConfirmation(context, question);
@@ -137,22 +138,34 @@ class AppAgent{
       switch (functionCall.name) {
         case 'askConfirmation':
           response = await askConfirmationCall(context, functionCall);
+          break;
         case 'setFontFamily':
-          setFontFamilyCall(context, functionCall);
+          await setFontFamilyCall(context, functionCall);
+          break;
         case 'setFontSizeFactor':
           setFontSizeFactorCall(context, functionCall);
+          await chat.sendMessage(
+            Content.text('I\'ve updated the font size.'),
+          );
+          break;
         case 'setAppColor':
           setAppColorCall(context, functionCall);
+          await chat.sendMessage(
+            Content.text('I\'ve updated the app theme color.'),
+          );
+          break;
         case 'getDeviceInfo':
           var deviceInfo = await getDeviceInfoCall();
           response = await chat.sendMessage(
             Content.text('Device Info: $deviceInfo'),
           );
+          break;
         case 'getBatteryInfo':
           var batteryInfo = await getBatteryInfoCall();
           response = await chat.sendMessage(
             Content.text('Battery Info: $batteryInfo'),
           );
+          break;
         case 'fileFeedback':
           var feedbackReport = await fileFeedbackReport(context, functionCall);
           await chat.sendMessage(
@@ -169,7 +182,7 @@ class AppAgent{
       if (response != null &&
           response.functionCalls.isNotEmpty &&
           context.mounted) {
-        checkFunctionCalls(context, response.functionCalls);
+        await checkFunctionCalls(context, response.functionCalls);
       }
     }
     return;
@@ -233,7 +246,7 @@ class AppAgent{
     return feedbackReport;
   }
 
-  Future<void> submitFeedback(
+  Future<String?> submitFeedback(
     BuildContext context,
     Uint8List userScreenshot,
     String userFeedbackText,
@@ -260,28 +273,20 @@ class AppAgent{
       final response = await chat.sendMessage(prompt);
       final functionCalls = response.functionCalls.toList();
 
-      // If there's a text response, show it to the user
-      if (response.text?.isNotEmpty ?? false) {
-        if (context.mounted) {
-          // Show the AI's response in the chat
-          final navigator = Navigator.of(context);
-          if (navigator.canPop()) {
-            navigator.pop(); // Close the feedback dialog if it's open
-          }
-          
-          // The message will be added to the chat via the function calls
-          // If there are no function calls, we'll add the response as a message
-          if (functionCalls.isEmpty) {
-            // This will be handled by the chat interface
-            chat.sendMessage(Content.text(response.text!));
-          }
-        }
-      }
-
       // Process any function calls from the response
       if (context.mounted && functionCalls.isNotEmpty) {
         await checkFunctionCalls(context, functionCalls);
       }
+
+      if (response.text?.trim().isNotEmpty ?? false) {
+        return response.text!.trim();
+      }
+
+      if (functionCalls.isNotEmpty) {
+        return 'Done.';
+      }
+
+      return null;
     } catch (e) {
       debugPrint('Error submitting feedback: $e');
       rethrow; // Rethrow to be handled by the caller

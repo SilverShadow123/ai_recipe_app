@@ -1,11 +1,13 @@
 import 'dart:typed_data';
-import 'dart:async';
-
-import 'package:ai_recipe_app/features/recipe/domain/entities/recipe_entity.dart';
-import 'package:flutter/foundation.dart';
+import '../entities/recipe_entity.dart';
+import '../entities/saved_recipe_entity.dart';
 
 abstract class RecipeRepository {
   Future<RecipeEntity> generateRecipe(String ingredients, String? notes);
+
   Future<RecipeEntity> extractIngredientsFromImage(Uint8List imageBytes);
-  Future generateRecipeImage(String ingredients, String? notes);
+
+  Future<Uint8List> generateRecipeImage(String ingredients, String? notes);
+
+  Future<void> saveRecipe(SavedRecipeEntity recipe, Uint8List? imageBytes);
 }

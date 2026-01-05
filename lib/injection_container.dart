@@ -3,8 +3,11 @@ import 'package:ai_recipe_app/features/recipe/data/datasources/recipe_ai_datasou
 import 'package:ai_recipe_app/features/recipe/data/repositories/auth_repository_impl.dart';
 import 'package:ai_recipe_app/features/recipe/data/repositories/recipe_repository_impl.dart';
 import 'package:ai_recipe_app/features/recipe/domain/repositories/auth_repository.dart';
+import 'package:ai_recipe_app/features/recipe/domain/repositories/recipe_repository.dart';
 import 'package:ai_recipe_app/features/recipe/domain/usecases/extract_ingredients_from_image_usecase.dart';
+import 'package:ai_recipe_app/features/recipe/domain/usecases/generate_recipe_image_usecase.dart';
 import 'package:ai_recipe_app/features/recipe/domain/usecases/generate_recipe_usecase.dart';
+import 'package:ai_recipe_app/features/recipe/domain/usecases/save_recipe_usecase.dart';
 import 'package:ai_recipe_app/features/recipe/domain/usecases/get_current_user_usecase.dart';
 import 'package:ai_recipe_app/features/recipe/domain/usecases/reset_password_usecase.dart';
 import 'package:ai_recipe_app/features/recipe/domain/usecases/sign_in_usecase.dart';
@@ -15,45 +18,79 @@ import 'package:ai_recipe_app/features/recipe/presentation/bloc/auth/auth_bloc.d
 import 'package:ai_recipe_app/features/recipe/presentation/bloc/bottom_navigation/bottom_nav_cubit.dart';
 import 'package:ai_recipe_app/features/recipe/presentation/bloc/recipe/recipe_bloc.dart';
 import 'package:ai_recipe_app/features/recipe/presentation/bloc/theme_settings/theme_settings_cubit.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
-import 'features/recipe/domain/repositories/recipe_repository.dart';
-import 'features/recipe/domain/usecases/generate_recipe_image_usecase.dart';
-
+import 'features/recipe/data/datasources/local_image_datasource.dart';
+import 'features/recipe/data/repositories/recipe_firebase_datasource.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
-
-  const serverClientId = '246230566041-f7teceqc5ar0kco9g5c5m0b83f1r0qrb.apps.googleusercontent.com';
+  // --- Google sign-in initialization ---
+  const serverClientId =
+      '246230566041-f7teceqc5ar0kco9g5c5m0b83f1r0qrb.apps.googleusercontent.com';
   final googleSignIn = GoogleSignIn.instance;
   await googleSignIn.initialize(serverClientId: serverClientId);
 
+  // --- Firebase ---
   sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
   sl.registerLazySingleton<GoogleSignIn>(() => googleSignIn);
+  sl.registerLazySingleton<FirebaseFirestore>(() => FirebaseFirestore.instance);
+
+  // --- Auth datasource & repo ---
   sl.registerLazySingleton(() => FirebaseAuthDatasource(sl(), sl()));
   sl.registerLazySingleton<AuthRepo>(
-    () => AuthRepositoryImpl(sl<FirebaseAuthDatasource>()),
-  );
+          () => AuthRepositoryImpl(sl<FirebaseAuthDatasource>()));
+
+  // --- Auth use cases ---
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
   sl.registerLazySingleton(() => SignInUsecase(sl()));
   sl.registerLazySingleton(() => SignUpUsecase(sl()));
   sl.registerLazySingleton(() => SignInWithGoogleUsecase(sl()));
   sl.registerLazySingleton(() => SignOutUsecase(sl()));
   sl.registerLazySingleton(() => ResetPasswordUsecase(sl()));
-  sl.registerLazySingleton(()=>RecipeAIDatasource());
-  sl.registerLazySingleton<RecipeRepository>(() => RecipeRepositoryImpl(sl()));
-  sl.registerLazySingleton(()=>GenereateRecipeUseCase(sl()));
-  sl.registerLazySingleton(()=>ExtractIngredientsFromImageUsecase(sl()));
-  sl.registerLazySingleton(()=>GenerateRecipeImageUsecase(sl()));
-  sl.registerLazySingleton(() => RecipeBloc(sl(), sl(), sl()));
+
+// --- Recipe datasource & repo ---
+  sl.registerLazySingleton(() => RecipeAIDatasource());
+  sl.registerLazySingleton(() => RecipeFirestoreDatasource(
+    firestore: sl(),
+    auth: sl(),
+  ));
+  sl.registerLazySingleton(() => LocalImageDatasource());
+
+  sl.registerLazySingleton<RecipeRepository>(() => RecipeRepositoryImpl(
+    aiDatasource: sl(),
+    firestoreDatasource: sl(),
+    localImageDatasource: sl(),
+  ));
+
+
+  // --- Recipe use cases ---
+  sl.registerLazySingleton(() => GenereateRecipeUseCase(sl()));
+  sl.registerLazySingleton(() => ExtractIngredientsFromImageUsecase(sl()));
+  sl.registerLazySingleton(() => GenerateRecipeImageUsecase(sl()));
+  sl.registerLazySingleton(() => SaveRecipeUseCase(sl()));
+
+  // --- Recipe Bloc ---
+  sl.registerLazySingleton(() => RecipeBloc(
+    generateRecipe: sl(),
+    extractIngredients: sl(),
+    generateRecipeImage: sl(),
+    saveRecipe: sl(),
+  ));
+
+  // --- Other cubits ---
   sl.registerLazySingleton(() => BottomNavCubit());
   sl.registerLazySingleton(() => ThemeSettingsCubit());
 
+  // --- Auth Bloc ---
   sl.registerFactory(
-    () => AuthBloc(
+        () => AuthBloc(
       getCurrentUserUseCase: sl(),
       signInUsecase: sl(),
       signUpUsecase: sl(),
@@ -62,5 +99,4 @@ Future<void> init() async {
       resetPasswordUsecase: sl(),
     ),
   );
-
 }

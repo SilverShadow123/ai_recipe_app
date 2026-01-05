@@ -1,31 +1,35 @@
 import 'dart:typed_data';
-
 import 'package:equatable/equatable.dart';
 
 class RecipeState extends Equatable {
   final bool isGenerating;
   final bool isExtracting;
   final bool isGeneratingImage;
+  final bool isSaving;
+  final bool saveSuccess;
   final String recipeText;
   final String extractedIngredients;
   final String error;
   final Uint8List? imageBytes;
 
-  const RecipeState(
-   {
-     this.isGeneratingImage=false,
-     this.imageBytes,
-     this.isGenerating = false,
+  const RecipeState({
+    this.isGenerating = false,
     this.isExtracting = false,
+    this.isGeneratingImage = false,
+    this.isSaving = false,
+    this.saveSuccess = false,
     this.recipeText = "",
     this.extractedIngredients = "",
     this.error = "",
+    this.imageBytes,
   });
 
   RecipeState copyWith({
     bool? isGenerating,
     bool? isExtracting,
     bool? isGeneratingImage,
+    bool? isSaving,
+    bool? saveSuccess,
     String? recipeText,
     String? extractedIngredients,
     String? error,
@@ -33,23 +37,27 @@ class RecipeState extends Equatable {
   }) {
     return RecipeState(
       isGenerating: isGenerating ?? this.isGenerating,
-      isGeneratingImage: isGeneratingImage ?? this.isGeneratingImage,
-      imageBytes: imageBytes ?? this.imageBytes,
       isExtracting: isExtracting ?? this.isExtracting,
+      isGeneratingImage: isGeneratingImage ?? this.isGeneratingImage,
+      isSaving: isSaving ?? this.isSaving,
+      saveSuccess: saveSuccess ?? this.saveSuccess,
       recipeText: recipeText ?? this.recipeText,
       extractedIngredients: extractedIngredients ?? this.extractedIngredients,
       error: error ?? this.error,
+      imageBytes: imageBytes ?? this.imageBytes,
     );
   }
 
   @override
   List<Object?> get props => [
     isGenerating,
-    isGeneratingImage,
-    imageBytes,
     isExtracting,
+    isGeneratingImage,
+    isSaving,
+    saveSuccess,
     recipeText,
     extractedIngredients,
     error,
+    imageBytes,
   ];
 }
