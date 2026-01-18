@@ -3,36 +3,132 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:http/http.dart' as http;
-import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/constants/constant.dart';
 
 class RecipeAIDatasource {
 
+  static const String _openRouterModel = 'google/gemma-3-27b-it:free';
+  static const String _openRouterVisionModel =
+      'nvidia/nemotron-nano-12b-v2-vl:free';
 
-  final model = FirebaseAI.googleAI().generativeModel(
-    model: 'gemini-2.5-flash-lite',
-  );
+  Uri get _openRouterChatCompletionsUrl =>
+      Uri.parse('$openRouterBaseUrl/chat/completions');
 
   static const Duration _textTimeout = Duration(seconds: 30);
   static const Duration _imageTimeout = Duration(seconds: 90);
-  static const int _maxQuotaRetries = 1;
-  static const Duration _maxAutoRetryWait = Duration(seconds: 2);
+  static const int _maxQuotaRetries = 2;
+  static const Duration _maxAutoRetryWait = Duration(seconds: 10);
+
+  Map<String, String> get _openRouterHeaders => {
+        'Authorization': 'Bearer $openRouterApiKey',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
+  Future<String> _openRouterChat({
+    required List<Map<String, dynamic>> messages,
+    double temperature = 0.2,
+    String? model,
+    Duration? timeout,
+  }) async {
+    if (openRouterApiKey.trim().isEmpty) {
+      throw Exception(
+        'Missing OPENROUTER_API_KEY. Provide it securely (do not hardcode).',
+      );
+    }
+
+    final body = {
+      'model': model ?? _openRouterModel,
+      'messages': messages,
+      'temperature': temperature,
+    };
+
+    final response = await http
+        .post(
+          _openRouterChatCompletionsUrl,
+          headers: _openRouterHeaders,
+          body: jsonEncode(body),
+        )
+        .timeout(timeout ?? _textTimeout);
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String errorText;
+      try {
+        final decoded = jsonDecode(response.body);
+        errorText = decoded is Map
+            ? (decoded['error']?.toString() ?? decoded.toString())
+            : decoded.toString();
+      } catch (_) {
+        errorText = response.body;
+      }
+
+      final retryAfter = response.headers['retry-after'];
+      final retrySuffix = (retryAfter != null && retryAfter.trim().isNotEmpty)
+          ? ' retry-after: ${retryAfter.trim()}s'
+          : '';
+
+      throw Exception(
+        'OpenRouter request failed: ${response.statusCode} - $errorText$retrySuffix',
+      );
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map) {
+      throw Exception('OpenRouter response was not JSON object');
+    }
+
+    final choices = decoded['choices'];
+    if (choices is! List || choices.isEmpty) {
+      throw Exception('OpenRouter response had no choices');
+    }
+
+    final message = choices.first['message'];
+    final content = message is Map ? message['content'] : null;
+    final text = content?.toString().trim();
+    if (text == null || text.isEmpty) {
+      throw Exception('OpenRouter returned empty content');
+    }
+    return text;
+  }
 
   bool _isQuotaError(Object error) {
     final msg = error.toString().toLowerCase();
     return msg.contains('quota exceeded') ||
         msg.contains('rate limit') ||
+        msg.contains('rate limited') ||
         msg.contains('rate-limits') ||
-        msg.contains('resource_exhausted');
+        msg.contains('resource_exhausted') ||
+        msg.contains('too many requests') ||
+        msg.contains(' 429 ');
+  }
+
+  bool _isVisionUnsupportedError(Object error) {
+    final msg = error.toString().toLowerCase();
+    return msg.contains('unsupported media type') ||
+        msg.contains('unsupported content type') ||
+        msg.contains('unsupported image') ||
+        msg.contains('unsupported input') ||
+        msg.contains('invalid request parameters') ||
+        msg.contains('provider returned error') ||
+        msg.contains('image_url') ||
+        msg.contains('multimodal') ||
+        msg.contains('vision');
   }
 
   Duration? _parseRetryAfter(Object error) {
     final msg = error.toString();
-    final match = RegExp(r'Please retry in\s*([0-9.]+)s').firstMatch(msg);
-    if (match == null) return null;
-    final seconds = double.tryParse(match.group(1) ?? '');
+
+    final matchSeconds = RegExp(r'Please retry in\s*([0-9.]+)s').firstMatch(msg);
+    final matchHeader = RegExp(
+      r'retry-after\s*:\s*([0-9.]+)s?',
+      caseSensitive: false,
+    ).firstMatch(msg);
+
+    final raw = matchSeconds?.group(1) ?? matchHeader?.group(1);
+    if (raw == null) return null;
+    final seconds = double.tryParse(raw);
     if (seconds == null) return null;
     final ms = (seconds * 1000).ceil();
     if (ms <= 0) return null;
@@ -87,28 +183,97 @@ class RecipeAIDatasource {
     return text.trim();
   }
 
+  String _sniffImageMimeType(Uint8List bytes) {
+    if (bytes.length >= 12) {
+      if (bytes[0] == 0x89 &&
+          bytes[1] == 0x50 &&
+          bytes[2] == 0x4E &&
+          bytes[3] == 0x47 &&
+          bytes[4] == 0x0D &&
+          bytes[5] == 0x0A &&
+          bytes[6] == 0x1A &&
+          bytes[7] == 0x0A) {
+        return 'image/png';
+      }
+
+      if (bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF) {
+        return 'image/jpeg';
+      }
+
+      if (bytes[0] == 0x52 &&
+          bytes[1] == 0x49 &&
+          bytes[2] == 0x46 &&
+          bytes[3] == 0x46 &&
+          bytes[8] == 0x57 &&
+          bytes[9] == 0x45 &&
+          bytes[10] == 0x42 &&
+          bytes[11] == 0x50) {
+        return 'image/webp';
+      }
+    }
+
+    return 'image/jpeg';
+  }
 
   Future<String> extractIngredientsFromImage(Uint8List imageBytes) async {
-    final prompt = Content.multi([
-      TextPart("""
-    Analyze the attached image and return ONLY the FOOD INGREDIENTS you can identify.
-    Return them as a comma-separated list, with no extra words or explanation.
-    Be specific (e.g., "2 tomatoes" if size/amount is clear), but if uncertain use the ingredient name only.            
-    """),
-      InlineDataPart('image/jpeg', imageBytes),
-    ]);
+    if (imageBytes.length > 3 * 1024 * 1024) {
+      return 'Image is too large to analyze. Please choose a smaller image.';
+    }
+
+    final mime = _sniffImageMimeType(imageBytes);
+    final imageB64 = base64Encode(imageBytes);
+    final messages = [
+      {
+        'role': 'user',
+        'content': [
+          {
+            'type': 'text',
+            'text':
+                'Analyze the attached image and return ONLY the FOOD INGREDIENTS you can identify.\n'
+                    'Return them as a comma-separated list, with no extra words or explanation.\n'
+                    'Be specific (e.g., "2 tomatoes" if size/amount is clear), but if uncertain use the ingredient name only.',
+          },
+          {
+            'type': 'image_url',
+            'image_url': {
+              'url': 'data:$mime;base64,$imageB64',
+              'detail': 'low',
+            },
+          },
+        ],
+      },
+    ];
     try {
-      final response = await _runWithQuotaRetry(
-        () => model.generateContent([prompt]).timeout(_textTimeout),
-      );
-      final text = response.text;
-      if (text == null || text.trim().isEmpty) return 'No ingredients found';
+      final text = await _runWithQuotaRetry(() async {
+        try {
+          return await _openRouterChat(
+            messages: messages,
+            timeout: _imageTimeout,
+            model: _openRouterModel,
+          );
+        } catch (e) {
+          if (_isVisionUnsupportedError(e) &&
+              _openRouterVisionModel != _openRouterModel) {
+            return await _openRouterChat(
+              messages: messages,
+              timeout: _imageTimeout,
+              model: _openRouterVisionModel,
+            );
+          }
+          rethrow;
+        }
+      });
+
       return _normalizeCommaSeparatedList(text);
     } on TimeoutException {
       return 'No ingredients found';
     } catch (e) {
       if (_isQuotaError(e)) {
         throw _quotaFriendlyException(e);
+      }
+      if (_isVisionUnsupportedError(e)) {
+        debugPrint('Vision not supported for extractIngredientsFromImage: $e');
+        return 'Image analysis is not supported right now.';
       }
       debugPrint('Error in extractIngredientsFromImage: $e');
       return 'No ingredients found';
@@ -191,13 +356,14 @@ Rules:
     }
 
     try {
-      final response = await _runWithQuotaRetry(
-        () => model.generateContent([Content.text(prompt)]).timeout(_textTimeout),
+      final text = await _runWithQuotaRetry(
+        () => _openRouterChat(
+          messages: [
+            {'role': 'user', 'content': prompt},
+          ],
+          temperature: 0.3,
+        ),
       );
-      final text = response.text?.trim();
-      if (text == null || text.isEmpty) {
-        throw Exception('No recipe generated');
-      }
       return text;
     } on TimeoutException {
       throw Exception('Request timed out. Please try again.');

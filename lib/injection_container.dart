@@ -22,8 +22,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 
 import 'features/recipe/data/datasources/local_image_datasource.dart';
 import 'features/recipe/data/repositories/recipe_firebase_datasource.dart';

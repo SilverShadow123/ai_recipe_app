@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/saved_recipe_entity.dart';
@@ -6,7 +5,6 @@ import '../../../domain/usecases/extract_ingredients_from_image_usecase.dart';
 import '../../../domain/usecases/generate_recipe_image_usecase.dart';
 import '../../../domain/usecases/generate_recipe_usecase.dart';
 import '../../../domain/usecases/save_recipe_usecase.dart';
-import '../../../domain/entities/recipe_entity.dart';
 import 'recipe_event.dart';
 import 'recipe_state.dart';
 
